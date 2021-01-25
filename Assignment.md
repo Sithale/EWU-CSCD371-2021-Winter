@@ -1,4 +1,7 @@
-﻿# Assignment
+﻿# Reading Assignment
+Chapters 10 and 11
+
+# Assignment
 
 - `Jester` class takes in the correct interfaces: ✔❌
 - `Jester` dependencies are null checked: ✔❌
