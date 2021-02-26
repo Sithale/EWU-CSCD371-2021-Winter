@@ -9,16 +9,20 @@ namespace Assignment.Tests
     [TestClass]
     public class SampleDataTests
     {
+        public const int FirstNameColumn = 1;
+        public const int LastNameColumn = 2;
+        public const int EmailColumn = 3;
+        public const int StreetAddressColumn = 4;
+        public const int CityColumn = 5;
+        public const int StateColumn = 6;
+        public const int ZipColumn = 7;
+
         [TestMethod]
         public void CsvRows_IterateThroughRows_CorrectNumberOfRows()
         {
             // Arrange
             SampleData data = new SampleData();
-            int rowNum = 0;
-
-            // Act
-            foreach (string row in data.CsvRows)
-                rowNum++;
+            int rowNum = data.CsvRows.Count();
 
             // Assert
             Assert.AreEqual<int>(50, rowNum);
@@ -26,31 +30,19 @@ namespace Assignment.Tests
         }
 
         [TestMethod]
-        public void GetUniqueSortedListOfStatesGivenCsvRows_SortTheListOfRows_ListIsProperlyOrdered()
+        public void GetUniqueSortedListOfStatesGivenCsvRows_SortTheListOfRows_ListIsProperlyOrderedAndUnique()
         {
             // Arrange
             SampleData data = new SampleData();
 
             // Act
             IEnumerable<string> rows = data.GetUniqueSortedListOfStatesGivenCsvRows();
-            bool res = rows.SequenceEqual(rows.OrderBy(row => row));
-            
-            // Assert
-            Assert.IsTrue(res);
-        }
-
-        [TestMethod]
-        public void GetUniqueSortedListOfStatesGivenCsvRows_SortTheListOfRows_ReturnsUniqueRows()
-        {
-            // Arrange
-            SampleData data = new SampleData();
-
-            // Act
-            IEnumerable<string> rows = data.GetUniqueSortedListOfStatesGivenCsvRows();
-            bool res = rows.SequenceEqual(rows.OrderBy(row => row).Distinct());
+            bool res1 = rows.SequenceEqual(rows.OrderBy(row => row));
+            bool res2 = rows.SequenceEqual(rows.OrderBy(row => row).Distinct());
 
             // Assert
-            Assert.IsTrue(res);
+            Assert.IsTrue(res1);
+            Assert.IsTrue(res2);
         }
 
         [TestMethod]
@@ -77,16 +69,17 @@ namespace Assignment.Tests
             IEnumerable<IPerson> people = data.People;
 
             // Act
-            IEnumerable<IPerson> correctPeople = data.CsvRows.OrderBy(StreetAddress => StreetAddress).Select(rows => rows.Split(","))
-                .OrderBy(State => State[6]).ThenBy(City => City[5]).ThenBy(Zip => Zip[7])
-                    .Select(person => new Person(person[1], person[2], new Address(person[4], person[5], person[6], person[7]), person[3]));
+            IEnumerable<IPerson> correctPeople = data.CsvRows.OrderBy(streetAddress => streetAddress).Select(rows => rows.Split(","))
+                .OrderBy(state => state[StateColumn]).ThenBy(city => city[CityColumn]).ThenBy(zip => zip[ZipColumn])
+                    .Select(person => new Person(person[FirstNameColumn], person[LastNameColumn],new Address(person[StreetAddressColumn],
+                        person[CityColumn], person[StateColumn], person[ZipColumn]), person[EmailColumn]));
 
             IEnumerable<(IPerson, IPerson)> correctZip = people.Zip(correctPeople);
 
             // Assert
-            Assert.IsTrue(correctZip.All(person => (person.Item1.FirstName == person.Item2.FirstName)));
-            Assert.IsTrue(correctZip.All(person => (person.Item1.LastName == person.Item2.LastName)));
-            Assert.IsTrue(correctZip.All(person => (person.Item1.FirstName == person.Item2.FirstName)));
+            Assert.IsTrue(correctZip.All(person => (person.Item1.EmailAddress == person.Item2.EmailAddress)));
+            Assert.IsTrue(correctZip.All(person => (person.Item1.EmailAddress == person.Item2.EmailAddress)));
+            Assert.IsTrue(correctZip.All(person => (person.Item1.EmailAddress == person.Item2.EmailAddress)));
 
         }
 
@@ -105,6 +98,20 @@ namespace Assignment.Tests
 
             Assert.IsFalse(actual.Any(item => item.Item2 == "Mesnard"));
             Assert.IsFalse(actual.Any(item => item.Item1 == "Molly"));
+        }
+
+        [TestMethod]
+        public void GetAggregateListOfStatesGivnePeopleCollection_ComparesTwoStrings_ReturnsCorrectString()
+        {
+            // Arrange
+            SampleData data = new SampleData();
+
+            // Act
+            string states = data.GetAggregateSortedListOfStatesUsingCsvRows();
+            string correctStates = data.GetAggregateListOfStatesGivenPeopleCollection(data.People);
+
+            // Assert
+            Assert.AreEqual<string>(correctStates, states);
         }
     }
 }
